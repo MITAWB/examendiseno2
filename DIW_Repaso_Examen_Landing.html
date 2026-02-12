@@ -1,0 +1,1781 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DIW · Repaso Examen Trimestral (Bootstrap, jQuery, Accesibilidad, Usabilidad, React)</title>
+  <meta name="description" content="Landing tipo diapositivas verticales para repasar DIW: Tema 4, 5, 9, 10, 11, 12 y 13 + test, desarrollo y prácticas." />
+
+  <style>
+    :root{
+      --bg0:#070A12;
+      --bg1:#0B1224;
+      --card:#0F1A33cc;
+      --card2:#0B142A;
+      --line:#22335c;
+      --txt:#EAF0FF;
+      --muted:#A9B4D6;
+      --acc:#6EE7FF;
+      --acc2:#A78BFA;
+      --good:#34D399;
+      --bad:#FB7185;
+      --warn:#FBBF24;
+
+      --radius:18px;
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+      --shadow2: 0 10px 30px rgba(0,0,0,.35);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--txt);
+      background:
+        radial-gradient(1200px 700px at 20% 10%, #1b2b63 0%, transparent 60%),
+        radial-gradient(900px 700px at 90% 30%, #3b1b7a 0%, transparent 55%),
+        radial-gradient(900px 600px at 40% 110%, #004a6a 0%, transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow:hidden; /* importante para que NO quede contenido entre slides */
+    }
+
+    /* Layout de slides */
+    .deck{
+      position:fixed;
+      inset:0;
+      transform:translateY(0);
+      transition: transform 420ms cubic-bezier(.2,.9,.2,1);
+      will-change:transform;
+    }
+    .slide{
+      height:100vh;
+      width:100vw;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:28px;
+    }
+
+    /* contenedor interno con scroll propio (para que SIEMPRE se vea entero el slide) */
+    .frame{
+      width:min(1100px, 100%);
+      height:calc(100vh - 56px);
+      background: linear-gradient(180deg, rgba(16,25,52,.72), rgba(8,12,26,.60));
+      border:1px solid rgba(120,150,255,.20);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(10px);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+
+    .topbar{
+      padding:18px 20px;
+      border-bottom:1px solid rgba(120,150,255,.15);
+      display:flex;
+      align-items:center;
+      gap:14px;
+      justify-content:space-between;
+      background: linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,0));
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width: 0;
+    }
+    .badge{
+      width:40px;height:40px;
+      border-radius:12px;
+      background:
+        radial-gradient(16px 16px at 30% 30%, rgba(255,255,255,.28), rgba(255,255,255,0) 70%),
+        linear-gradient(135deg, rgba(110,231,255,.95), rgba(167,139,250,.95));
+      box-shadow: 0 12px 26px rgba(110,231,255,.18);
+      flex:0 0 auto;
+    }
+    .brand h1{
+      font-size:14px;
+      margin:0;
+      letter-spacing:.4px;
+      font-weight:700;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .brand p{
+      margin:2px 0 0;
+      font-size:12px;
+      color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .top-actions{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex:0 0 auto;
+    }
+    .pill{
+      font-size:12px;
+      color:var(--muted);
+      border:1px solid rgba(120,150,255,.18);
+      background: rgba(12,18,40,.55);
+      padding:8px 10px;
+      border-radius:999px;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      user-select:none;
+    }
+    .dot{
+      width:7px;height:7px;border-radius:99px;
+      background: var(--acc);
+      box-shadow: 0 0 0 6px rgba(110,231,255,.15);
+    }
+
+    .content{
+      padding:20px;
+      overflow:auto;
+      height:100%;
+    }
+
+    /* Tipografía y bloques */
+    h2{
+      font-size:28px;
+      margin:0 0 12px;
+      letter-spacing:-.3px;
+    }
+    h3{
+      font-size:18px;
+      margin:18px 0 10px;
+      color: #D9E3FF;
+      letter-spacing:-.2px;
+    }
+    p{ margin: 0 0 10px; color: var(--muted); line-height:1.55; }
+    ul{ margin: 10px 0 10px 18px; color: var(--muted); }
+    li{ margin: 6px 0; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap:14px;
+      margin-top:12px;
+    }
+    .card{
+      grid-column: span 6;
+      background: linear-gradient(180deg, rgba(16,26,54,.65), rgba(9,14,30,.55));
+      border:1px solid rgba(120,150,255,.14);
+      border-radius: 16px;
+      box-shadow: var(--shadow2);
+      padding:14px 14px 12px;
+      position:relative;
+      overflow:hidden;
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-2px -2px auto auto;
+      width:180px;height:180px;
+      background: radial-gradient(circle at 30% 30%, rgba(110,231,255,.18), transparent 60%);
+      pointer-events:none;
+    }
+    .card.wide{ grid-column: span 12; }
+    .card.third{ grid-column: span 4; }
+    .card .kicker{
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.9px;
+      color: rgba(234,240,255,.75);
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:8px;
+    }
+    .chip{
+      font-size:11px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(120,150,255,.18);
+      background: rgba(12,18,40,.55);
+      color: var(--muted);
+    }
+
+    .hl{ color: var(--txt); }
+    .good{ color: var(--good); }
+    .bad{ color: var(--bad); }
+    .warn{ color: var(--warn); }
+
+    .callout{
+      border-left: 3px solid rgba(110,231,255,.8);
+      background: rgba(110,231,255,.06);
+      padding:12px 12px;
+      border-radius: 12px;
+      margin: 12px 0;
+      color: rgba(234,240,255,.88);
+    }
+
+    pre{
+      margin:10px 0 0;
+      background: rgba(7,10,18,.75);
+      border:1px solid rgba(120,150,255,.12);
+      border-radius: 14px;
+      padding:12px;
+      overflow:auto;
+      font-family: var(--mono);
+      font-size:12px;
+      line-height:1.5;
+      color: #EAF0FF;
+    }
+    code{ font-family: var(--mono); }
+
+    /* QA con <details> */
+    details{
+      background: rgba(11,20,42,.55);
+      border:1px solid rgba(120,150,255,.14);
+      border-radius: 14px;
+      padding:10px 12px;
+      margin:10px 0;
+    }
+    details summary{
+      cursor:pointer;
+      color: rgba(234,240,255,.92);
+      font-weight:650;
+      list-style:none;
+      outline:none;
+    }
+    details summary::-webkit-details-marker{ display:none; }
+    details summary::before{
+      content:"▸";
+      display:inline-block;
+      margin-right:10px;
+      color: var(--acc);
+      transform: translateY(-1px);
+    }
+    details[open] summary::before{ content:"▾"; }
+    .answer{
+      margin-top:10px;
+      color: var(--muted);
+      line-height:1.55;
+    }
+    .answer b{ color: var(--txt); }
+
+    /* Indicador lateral */
+    .hud{
+      position:fixed;
+      right:18px;
+      top:50%;
+      transform:translateY(-50%);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      z-index:50;
+      user-select:none;
+    }
+    .hud .pip{
+      width:10px;height:10px;border-radius:99px;
+      border:1px solid rgba(120,150,255,.35);
+      background: rgba(12,18,40,.55);
+      cursor:pointer;
+      transition: transform 120ms ease, background 120ms ease;
+    }
+    .hud .pip:hover{ transform:scale(1.12); }
+    .hud .pip.active{
+      background: linear-gradient(135deg, rgba(110,231,255,.95), rgba(167,139,250,.95));
+      border-color: transparent;
+      box-shadow: 0 0 0 8px rgba(110,231,255,.12);
+    }
+
+    /* Footer mini */
+    .footer{
+      padding:12px 18px 14px;
+      border-top:1px solid rgba(120,150,255,.12);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      color:var(--muted);
+      font-size:12px;
+      background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.12));
+      gap:12px;
+    }
+    .kbd{
+      font-family: var(--mono);
+      font-size:11px;
+      border:1px solid rgba(120,150,255,.22);
+      background: rgba(7,10,18,.55);
+      padding:4px 8px;
+      border-radius:10px;
+      color: rgba(234,240,255,.9);
+      white-space:nowrap;
+    }
+
+    /* Responsive */
+    @media (max-width: 860px){
+      .card{ grid-column: span 12; }
+      .card.third{ grid-column: span 12; }
+      h2{ font-size:24px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="hud" id="hud" aria-label="Navegación por secciones"></div>
+
+  <main class="deck" id="deck" aria-live="polite">
+    <!-- SLIDE 0 -->
+    <section class="slide">
+      <div class="frame">
+        <div class="topbar">
+          <div class="brand">
+            <div class="badge" aria-hidden="true"></div>
+            <div>
+              <h1>DIW · Repaso Examen Trimestral</h1>
+              <p>7 temas (4,5,9,10,11,12,13) + test + desarrollo + prácticas</p>
+            </div>
+          </div>
+
+          <div class="top-actions">
+            <div class="pill"><span class="dot"></span><span id="slideLabel">Sección 1 / 12</span></div>
+            <div class="pill" title="Controles"><span class="kbd">↑</span><span class="kbd">↓</span><span class="kbd">Home</span><span class="kbd">End</span></div>
+          </div>
+        </div>
+
+        <div class="content">
+          <h2>Modo “diapositivas” verticales</h2>
+          <p>
+            Esto está montado para que <span class="hl">nunca se quede contenido a mitad</span> entre páginas:
+            cada sección ocupa <b>100vh</b> y el movimiento es por <b>transform</b>.
+            Si una sección es larga, tiene <b>scroll interno</b>.
+          </p>
+
+          <div class="grid">
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Cómo usar</span><span class="chip">Examen</span></div>
+              <ul>
+                <li><b>Flecha abajo</b> → siguiente sección · <b>Flecha arriba</b> → sección anterior</li>
+                <li><b>Home</b> → inicio · <b>End</b> → final</li>
+                <li>Puedes clicar los puntos de la derecha para ir directo.</li>
+              </ul>
+              <div class="callout">
+                <b>Objetivo del examen:</b> 20 tipo test + 2 desarrollo + 2 prácticas (Bootstrap/jQuery).
+                Aquí tienes resumen + banco de preguntas + 2 prácticas resueltas.
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Qué memorizar hoy</span></div>
+              <ul>
+                <li>Modelo de cajas: <b>content/padding/border/margin</b></li>
+                <li>Bootstrap: <b>container + row + col</b> + breakpoints + utilidades</li>
+                <li>SASS/LESS: <b>variables + mixins + anidamiento + operadores</b></li>
+                <li>jQuery: <b>ready + selectores + eventos</b> + <b>css()</b> y <b>replaceWith()</b></li>
+                <li>A11y: niveles, herramientas (<b>WAVE/TAW</b>) + contraste</li>
+                <li>Usabilidad: usuarios, navegación, ISO 9241/13407/9241-151</li>
+                <li>React: MVC, componentes, props/state, routing y Flux</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Truco de test</span></div>
+              <p>
+                Si dudan entre dos: busca la que define <b>idea + finalidad</b>.
+                Ej: “WAVE evalúa accesibilidad de un sitio” vs “WAVE es un editor”.
+              </p>
+              <p class="warn">
+                En DIW suelen preguntar cosas “de lista”: herramientas, niveles, capas (Flux), partes del box-model.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div>Empieza por Tema 4 → baja con <span class="kbd">↓</span></div>
+          <div>Consejo: 1 vuelta rápida + 1 vuelta a test + 1 práctica</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 1: TEMA 4 -->
+    <section class="slide">
+      <div class="frame">
+        <div class="topbar">
+          <div class="brand">
+            <div class="badge"></div>
+            <div>
+              <h1>Tema 4 · Modelo de cajas + Frameworks (YUI / Bootstrap 4)</h1>
+              <p>CSS box model + idea de frameworks + container/grid/colores/tipografía</p>
+            </div>
+          </div>
+          <div class="top-actions">
+            <div class="pill"><span class="dot"></span><span>Tema 4</span></div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="grid">
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Modelo de cajas</span><span class="chip">Pregunta típica</span></div>
+              <p>
+                En CSS, <b>todo elemento</b> se representa como una caja. Sus capas:
+              </p>
+              <ul>
+                <li><b>Content</b>: el contenido (texto/imagen). Se controla con <code>width</code>/<code>height</code>.</li>
+                <li><b>Padding</b>: relleno interno entre content y borde.</li>
+                <li><b>Border</b>: borde alrededor del padding/content.</li>
+                <li><b>Margin</b>: espacio externo que separa cajas.</li>
+              </ul>
+              <div class="callout">
+                Lo que cae: saber <b>qué es cada capa</b>, y que el tamaño visual total = content + padding + border (+ margen como separación).
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">YUI (Yahoo! User Interface)</span></div>
+              <p>
+                Framework (histórico) de utilidades y buenas prácticas en <b>CSS</b> y <b>JavaScript</b>.
+                Incluía ficheros típicos como reset/fonts/grids para normalizar estilos y definir rejillas.
+              </p>
+              <ul>
+                <li>Idea: acelerar diseño con una base consistente.</li>
+                <li>Enlace típico: <code>reset-fonts-grids.css</code>.</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Bootstrap 4</span><span class="chip">Framework moderno</span></div>
+              <p>
+                Framework para maquetar rápido y responsive. Lo clave:
+              </p>
+              <ul>
+                <li><b>Container</b>: <code>.container</code> (con márgenes) vs <code>.container-fluid</code> (ancho completo).</li>
+                <li><b>Grid</b>: filas <code>.row</code> y columnas <code>.col-*</code> (sistema 12 columnas).</li>
+                <li><b>Tipografías</b> y <b>colores</b> por clases: <code>text-*</code>, <code>bg-*</code>, etc.</li>
+              </ul>
+            </div>
+
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Mini ejemplo</span><span class="chip">Lo que podrías hacer en práctica</span></div>
+              <pre><code>&lt;div class="container"&gt;
+  &lt;div class="row"&gt;
+    &lt;div class="col-12 col-md-6"&gt;Mitad en md+&lt;/div&gt;
+    &lt;div class="col-12 col-md-6"&gt;Mitad en md+&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+              <p class="muted" style="margin-top:10px;">
+                Interpretación: móvil (col-12) → una debajo de otra. En md+ (col-md-6) → dos columnas.
+              </p>
+            </div>
+          </div>
+
+          <details>
+            <summary>Tipo test rápido (Tema 4): ¿Qué capa del box-model separa una caja de otra?</summary>
+            <div class="answer"><b>Margin</b>. El padding es interno; el margin es espacio externo.</div>
+          </details>
+          <details>
+            <summary>Tipo test rápido (Tema 4): Diferencia entre <code>container</code> y <code>container-fluid</code></summary>
+            <div class="answer"><b>container</b> mantiene márgenes laterales; <b>container-fluid</b> ocupa todo el ancho.</div>
+          </details>
+        </div>
+
+        <div class="footer">
+          <div>Box-model + frameworks: base para todo DIW</div>
+          <div>Siguiente: <b>Tema 5 · SASS/LESS</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: TEMA 5 -->
+    <section class="slide">
+      <div class="frame">
+        <div class="topbar">
+          <div class="brand">
+            <div class="badge"></div>
+            <div>
+              <h1>Tema 5 · Preprocesadores (SASS / LESS)</h1>
+              <p>Variables, mixins, operadores, anidamiento y estructura de ficheros</p>
+            </div>
+          </div>
+          <div class="top-actions">
+            <div class="pill"><span class="dot"></span><span>Tema 5</span></div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="grid">
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Definición</span></div>
+              <p>
+                Un preprocesador te deja escribir “CSS mejorado” (variables, mixins, nesting, operadores)
+                y luego se <b>compila</b> a CSS normal.
+              </p>
+              <div class="callout">
+                Idea de examen: antes, si querías cambiar un color global, tocabas muchas líneas;
+                con variables, cambias 1 valor y recompilas.
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Estructura recomendada (SCSS)</span></div>
+              <ul>
+                <li>Separar ficheros por responsabilidad: <b>config</b>, <b>utilities</b>, <b>mixins</b>, componentes, layout…</li>
+                <li>Usar <code>@import</code> (o la forma moderna) para componer un CSS final.</li>
+              </ul>
+              <pre><code>// main.scss
+@import "config";
+@import "utilities";
+@import "mixins";</code></pre>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Variables</span><span class="chip">SASS / LESS</span></div>
+              <p>Guardas valores (colores, tamaños, etc.) para reutilizarlos.</p>
+              <pre><code>// SASS
+$primary: #0d6efd;
+.btn { background: $primary; }</code></pre>
+              <pre><code>// LESS
+@primary: #0d6efd;
+.btn { background: @primary; }</code></pre>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Mixins</span><span class="chip">Reutilización</span></div>
+              <p>Bloques reutilizables, como “funciones” de CSS.</p>
+              <pre><code>// SASS
+@mixin pill($bg){
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: $bg;
+}
+.tag { @include pill(rgba(110,231,255,.12)); }</code></pre>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Operadores + anidamiento</span></div>
+              <p>
+                Puedes hacer cálculos y anidar selectores para organizar jerarquías.
+              </p>
+              <pre><code>// SASS
+$gap: 12px;
+
+.card{
+  padding: $gap;
+  h3{ margin-top: $gap * 1.5; }
+}</code></pre>
+              <p class="muted" style="margin-top:10px;">En CSS final se “aplana” a selectores normales.</p>
+            </div>
+
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Identación + Grid system (idea)</span></div>
+              <p>
+                En el tema se menciona la identificación/estructura jerárquica en SASS y el concepto de “grid system”
+                como sistema de rejilla/columnas, muy útil para layouts consistentes.
+              </p>
+            </div>
+          </div>
+
+          <details>
+            <summary>Tipo test rápido: ¿Qué es un mixin?</summary>
+            <div class="answer">Un <b>bloque de código reutilizable</b> (tipo función) que puede recibir parámetros y se inserta donde lo incluyes.</div>
+          </details>
+          <details>
+            <summary>Tipo test rápido: ¿Cuál es la ventaja de variables?</summary>
+            <div class="answer">Cambias un valor en un sitio y <b>afecta a todos los usos</b> al recompilar.</div>
+          </details>
+        </div>
+
+        <div class="footer">
+          <div>Memoriza: variables · mixin · nesting · operadores · compilar → CSS</div>
+          <div>Siguiente: <b>Tema 9 · jQuery</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: TEMA 9 -->
+    <section class="slide">
+      <div class="frame">
+        <div class="topbar">
+          <div class="brand">
+            <div class="badge"></div>
+            <div>
+              <h1>Tema 9 · Integración de contenido interactivo (jQuery)</h1>
+              <p>DOM, ready, funciones DOM, eventos (teclado/ventana/ratón), css() y replaceWith()</p>
+            </div>
+          </div>
+          <div class="top-actions">
+            <div class="pill"><span class="dot"></span><span>Tema 9</span></div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="grid">
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Qué es</span></div>
+              <p>
+                jQuery es una librería de JavaScript que facilita la interacción con el <b>DOM</b>:
+                seleccionar elementos, modificar su contenido/estilos y escuchar eventos.
+              </p>
+              <div class="callout">
+                Cae muchísimo: <b>DOM + ready + selectores + eventos + css() + replaceWith()</b>.
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Ready (DOM listo)</span></div>
+              <pre><code>$(document).ready(function(){
+  // tu código aquí
+});
+
+// versión corta:
+$(function(){ /* ... */ });</code></pre>
+              <p class="muted" style="margin-top:10px;">Se usa para asegurar que el DOM existe antes de manipularlo.</p>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Selectores</span></div>
+              <ul>
+                <li><code>$("#id")</code> por id</li>
+                <li><code>$(".clase")</code> por clase</li>
+                <li><code>$("div")</code> por etiqueta</li>
+                <li><code>$("input[name=email]")</code> por atributo</li>
+              </ul>
+              <pre><code>// encadenado típico
+$("#msg").addClass("ok").text("Guardado");</code></pre>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Funciones DOM</span></div>
+              <ul>
+                <li><code>.text()</code> texto</li>
+                <li><code>.html()</code> HTML</li>
+                <li><code>.val()</code> value inputs</li>
+                <li><code>.append()</code> / <code>.prepend()</code> insertar</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">css()</span><span class="chip">Tema</span></div>
+              <p>Modifica estilos desde JS.</p>
+              <pre><code>$("#caja").css("background", "#111827");
+$("#caja").css({ color:"#fff", padding:"12px" });</code></pre>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">replaceWith()</span><span class="chip">Tema</span></div>
+              <p>Reemplaza un elemento por otro nuevo.</p>
+              <pre><code>$("#banner").replaceWith("&lt;div id='banner'&gt;Nuevo&lt;/div&gt;");</code></pre>
+            </div>
+
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Eventos por categorías</span></div>
+              <div class="grid" style="margin:0;">
+                <div class="card third">
+                  <div class="kicker"><span class="chip">Teclado</span></div>
+                  <ul>
+                    <li><code>keydown</code></li>
+                    <li><code>keyup</code></li>
+                    <li><code>keypress</code> (menos usado)</li>
+                  </ul>
+                </div>
+                <div class="card third">
+                  <div class="kicker"><span class="chip">Ventana</span></div>
+                  <ul>
+                    <li><code>resize</code></li>
+                    <li><code>scroll</code></li>
+                    <li><code>load</code></li>
+                  </ul>
+                </div>
+                <div class="card third">
+                  <div class="kicker"><span class="chip">Ratón</span></div>
+                  <ul>
+                    <li><code>click</code></li>
+                    <li><code>mouseenter / mouseleave</code></li>
+                    <li><code>mousemove</code></li>
+                  </ul>
+                </div>
+              </div>
+              <pre><code>$(document).on("keydown", function(e){
+  if(e.key === "Escape"){ $("#modal").hide(); }
+});</code></pre>
+            </div>
+          </div>
+
+          <details>
+            <summary>Tipo test rápido: ¿Qué hace <code>replaceWith()</code>?</summary>
+            <div class="answer">Sustituye el elemento seleccionado por un nuevo elemento/HTML.</div>
+          </details>
+          <details>
+            <summary>Tipo test rápido: ¿Qué diferencia hay entre <code>text()</code> y <code>html()</code>?</summary>
+            <div class="answer"><b>text()</b> escribe texto plano; <b>html()</b> interpreta etiquetas HTML.</div>
+          </details>
+        </div>
+
+        <div class="footer">
+          <div>Recuerda: ready → select → evento → DOM/css/replace</div>
+          <div>Siguiente: <b>Tema 10 · Accesibilidad</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: TEMA 10 -->
+    <section class="slide">
+      <div class="frame">
+        <div class="topbar">
+          <div class="brand">
+            <div class="badge"></div>
+            <div>
+              <h1>Tema 10 · Accesibilidad Web (A11y)</h1>
+              <p>Conceptos, niveles de adecuación, herramientas (Contrast/WAVE/TAW) y CSS auditivo</p>
+            </div>
+          </div>
+          <div class="top-actions">
+            <div class="pill"><span class="dot"></span><span>Tema 10</span></div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="grid">
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Definición</span></div>
+              <p>
+                Accesibilidad = diseñar para que <b>cualquier usuario</b> pueda acceder y utilizar la web con facilidad,
+                reduciendo barreras (visuales, auditivas, motrices, cognitivas…).
+              </p>
+              <div class="callout">
+                En examen: niveles, herramientas y checklist (alt, contraste, teclado, semántica).
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Principios + niveles</span></div>
+              <ul>
+                <li>Principios habituales: <b>perceptible</b>, <b>operable</b>, <b>comprensible</b>, <b>robusto</b>.</li>
+                <li>Niveles de adecuación: <b>A</b> (mínimo), <b>AA</b> (recomendado), <b>AAA</b> (máximo).</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Checklist rápido</span></div>
+              <ul>
+                <li>Imágenes con <code>alt</code> útil</li>
+                <li>Contraste texto/fondo suficiente</li>
+                <li>Navegación por teclado (Tab/Enter) y foco visible</li>
+                <li>Labels en formularios + errores claros</li>
+                <li>Estructura semántica (h1-h2…, nav, main…)</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Herramienta: Color Contrast Checker</span></div>
+              <p>
+                Comprueba si el contraste entre texto y fondo cumple pautas de accesibilidad.
+              </p>
+              <p class="muted">En el tema se menciona dentro de WebAIM.</p>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Herramienta: WAVE</span></div>
+              <p>
+                Web Accessibility Evaluation Tool: analiza accesibilidad y muestra errores/avisos de forma visual sobre la página.
+              </p>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Herramienta: TAW</span></div>
+              <p>
+                Familia de herramientas para medir el grado de accesibilidad.
+                Incluye <b>análisis</b> y <b>certificaciones</b> según el resultado.
+              </p>
+            </div>
+
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Hojas de estilo auditivas (CSS Speech Module)</span></div>
+              <p>
+                Estilos pensados para reproducir/interpretar contenido por voz (útiles para usuarios con dificultad visual).
+                En el tema se tratan como “hojas de estilo auditivas” y sus propiedades.
+              </p>
+              <div class="callout">
+                Si te lo preguntan en desarrollo: explica qué son y para qué sirven (adaptación a salida por audio).
+              </div>
+            </div>
+          </div>
+
+          <details>
+            <summary>Tipo test rápido: Orden correcto de niveles</summary>
+            <div class="answer"><b>A → AA → AAA</b> (de menos a más exigente).</div>
+          </details>
+          <details>
+            <summary>Tipo test rápido: ¿Para qué sirve WAVE?</summary>
+            <div class="answer">Para <b>evaluar accesibilidad</b> y ver problemas/avisos de forma visual sobre la web.</div>
+          </details>
+        </div>
+
+        <div class="footer">
+          <div>A11y: niveles + herramientas + checklist</div>
+          <div>Siguiente: <b>Tema 11 · Usabilidad</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: TEMA 11 -->
+    <section class="slide">
+      <div class="frame">
+        <div class="topbar">
+          <div class="brand">
+            <div class="badge"></div>
+            <div>
+              <h1>Tema 11 · Usabilidad Web</h1>
+              <p>Concepto, tipos de usuario, barreras, navegación, normativa ISO y técnicas de evaluación</p>
+            </div>
+          </div>
+          <div class="top-actions">
+            <div class="pill"><span class="dot"></span><span>Tema 11</span></div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="grid">
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Definición</span></div>
+              <p>
+                Usabilidad = facilidad con la que un usuario completa tareas en una web de forma
+                <b>eficiente</b>, <b>aprendible</b> y con buena experiencia.
+              </p>
+              <div class="callout">
+                Diferencia clave: Accesibilidad = “que todos puedan usarla”. Usabilidad = “que sea fácil y eficiente”.
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Tipos de usuario</span></div>
+              <ul>
+                <li><b>Novato</b>: necesita guía, claridad y consistencia.</li>
+                <li><b>Intermedio</b>: combina guía y atajos.</li>
+                <li><b>Experto</b>: busca rapidez, atajos y control.</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Barreras típicas</span></div>
+              <ul>
+                <li>Navegación confusa (no sabes dónde estás)</li>
+                <li>Falta de feedback (no confirma acciones)</li>
+                <li>Formularios largos o con errores poco claros</li>
+                <li>Demasiada carga visual / exceso de elementos</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Navegación en la web</span></div>
+              <ul>
+                <li>Menús claros + jerarquía coherente</li>
+                <li>Enlaces con texto significativo</li>
+                <li>“Miguitas” / indicación de ubicación</li>
+                <li>Consistencia entre páginas</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Normativa ISO (del tema)</span></div>
+              <ul>
+                <li><b>ISO/IEC 9241</b>: guía de usabilidad y medidas evaluadas.</li>
+                <li><b>ISO 13407</b>: diseño de sistemas interactivos centrado en el usuario.</li>
+                <li><b>ISO/TR 9241/151</b>: directrices para diseño de interfaces web centrado en el usuario.</li>
+              </ul>
+            </div>
+
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Técnicas de análisis y verificación (idea de examen)</span></div>
+              <ul>
+                <li>Pruebas con usuarios (observación de tareas)</li>
+                <li>Heurísticas (revisión experta)</li>
+                <li>Métricas: tiempo, errores, satisfacción</li>
+                <li>Herramientas para evaluar navegación y problemas</li>
+              </ul>
+              <p class="muted">En desarrollo suelen pedir “cómo verificarías la usabilidad” + ejemplos.</p>
+            </div>
+          </div>
+
+          <details>
+            <summary>Tipo test rápido: ¿Qué ISO se asocia a “diseño centrado en el usuario” en sistemas interactivos?</summary>
+            <div class="answer"><b>ISO 13407</b>.</div>
+          </details>
+        </div>
+
+        <div class="footer">
+          <div>Usabilidad: usuarios + barreras + navegación + ISO + verificación</div>
+          <div>Siguiente: <b>Tema 12 · React (I) + MVC</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: TEMA 12 -->
+    <section class="slide">
+      <div class="frame">
+        <div class="topbar">
+          <div class="brand">
+            <div class="badge"></div>
+            <div>
+              <h1>Tema 12 · Bibliotecas de interfaces (I) — MVC + React</h1>
+              <p>Patrones (MVC), herramientas (Node/npm/npx), componentes, props, state, render y composición</p>
+            </div>
+          </div>
+          <div class="top-actions">
+            <div class="pill"><span class="dot"></span><span>Tema 12</span></div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="grid">
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Patrón MVC</span></div>
+              <p>
+                MVC divide una app en 3 partes:
+              </p>
+              <ul>
+                <li><b>Modelo</b>: datos y lógica de negocio</li>
+                <li><b>Vista</b>: interfaz (lo que ve el usuario)</li>
+                <li><b>Controlador</b>: conecta vista y modelo (gestiona acciones)</li>
+              </ul>
+              <div class="callout">
+                En el tema se comenta que el desarrollo JS moderno suele apoyarse en patrones como MVC.
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Herramientas React</span></div>
+              <ul>
+                <li><b>Node.js</b>: entorno para ejecutar herramientas JS</li>
+                <li><b>npm</b>: gestor de paquetes</li>
+                <li><b>npx</b>: ejecutar paquetes/comandos sin instalar global</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Componentes</span></div>
+              <p>Un componente es una pieza reusable con 3 pilares:</p>
+              <ul>
+                <li><b>Estructura</b> (JSX)</li>
+                <li><b>Estilos</b></li>
+                <li><b>Comportamiento</b></li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Props</span></div>
+              <p>Objeto de entrada: valores que recibe el componente para hacerlo dinámico.</p>
+              <pre><code>const Saludar = (props) =&gt; (
+  &lt;h3&gt;Hola {props.name}&lt;/h3&gt;
+);</code></pre>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">State</span></div>
+              <p>Estado interno (cambia con interacción).</p>
+              <pre><code>// clase (según temario)
+this.state = { contador: 0 };
+this.setState({ contador: this.state.contador + 1 });</code></pre>
+            </div>
+
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Render + composición</span></div>
+              <p>
+                Renderizar = pintar el componente en el DOM. La composición = un componente usa otros dentro.
+              </p>
+              <pre><code>function App(){
+  return (
+    &lt;div&gt;
+      &lt;Saludar name="Diana" /&gt;
+      &lt;Saludar name="Pepe" /&gt;
+    &lt;/div&gt;
+  );
+}
+
+ReactDOM.render(&lt;App /&gt;, document.getElementById("root"));</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div>React I: MVC + herramientas + componentes + props/state</div>
+          <div>Siguiente: <b>Tema 13 · Eventos, Routing y Flux</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7: TEMA 13 -->
+    <section class="slide">
+      <div class="frame">
+        <div class="topbar">
+          <div class="brand">
+            <div class="badge"></div>
+            <div>
+              <h1>Tema 13 · React (II) — Eventos, Routing y Flux</h1>
+              <p>Eventos (ratón/teclado/foco/form), React Router y arquitectura Flux</p>
+            </div>
+          </div>
+          <div class="top-actions">
+            <div class="pill"><span class="dot"></span><span>Tema 13</span></div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="grid">
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Eventos en React</span></div>
+              <p>Eventos típicos del tema:</p>
+              <ul>
+                <li>Ratón/teclado (onClick, onKeyDown…)</li>
+                <li>Foco y formulario: <code>onFocus</code>, <code>onBlur</code>, <code>onChange</code>, <code>onSubmit</code>, <code>onReset</code></li>
+              </ul>
+              <pre><code>&lt;form onSubmit={handleSubmit}&gt;
+  &lt;input onChange={handleChange} /&gt;
+&lt;/form&gt;</code></pre>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Routing</span></div>
+              <p>
+                Permite navegación por rutas (home/tienda/galería) en SPA.
+                React Router se usa en web con <b>react-router-dom</b>.
+              </p>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Optimización de rutas</span></div>
+              <p>
+                En vez de escribir muchas rutas a mano, defines un array de rutas y lo mapeas.
+              </p>
+              <pre><code>const routes = [
+  { path: "/", component: Home },
+  { path: "/tienda", component: Tienda },
+  { path: "/galeria", component: Galeria },
+];</code></pre>
+            </div>
+
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Ejemplo estilo temario (Router / Switch / Route)</span></div>
+              <pre><code>// (estilo React Router clásico)
+&lt;Router&gt;
+  &lt;Switch&gt;
+    &lt;Route exact path="/" component={Home} /&gt;
+    &lt;Route path="/tienda" component={Tienda} /&gt;
+    &lt;Route path="/galeria" component={Galeria} /&gt;
+  &lt;/Switch&gt;
+&lt;/Router&gt;</code></pre>
+            </div>
+
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Flux</span><span class="chip">Flujo unidireccional</span></div>
+              <ul>
+                <li><b>Views</b>: UI</li>
+                <li><b>Actions</b>: describen lo que pasa</li>
+                <li><b>Dispatcher</b>: distribuye actions</li>
+                <li><b>Stores</b>: estado/datos</li>
+              </ul>
+              <div class="callout">
+                Frase de examen: “Flux es una arquitectura con <b>flujo unidireccional</b> que separa vistas, acciones, dispatcher y stores.”
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div>React II: eventos + rutas + Flux</div>
+          <div>Siguiente: <b>Cheat sheet librerías React</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 8: LIBRERIAS REACT -->
+    <section class="slide">
+      <div class="frame">
+        <div class="topbar">
+          <div class="brand">
+            <div class="badge"></div>
+            <div>
+              <h1>Librerías React (1 frase cada una)</h1>
+              <p>Routing, forms, UI, estado, tests, data fetching, gráficos, animaciones, 3D, tablas, virtualización, fechas e i18n</p>
+            </div>
+          </div>
+          <div class="top-actions">
+            <div class="pill"><span class="dot"></span><span>Cheat sheet</span></div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="grid">
+            <div class="card">
+              <div class="kicker"><span class="chip">Routing</span></div>
+              <ul>
+                <li><b>React Router</b>: navegación por rutas (URLs → componentes) en SPA.</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Formularios</span></div>
+              <ul>
+                <li><b>React Hook Form</b>: formularios con mínimo re-render y hooks.</li>
+                <li><b>Formik</b>: estado + validación + submit en formularios.</li>
+                <li><b>Zod</b>: validación por schemas (muy bien con TypeScript).</li>
+                <li><b>Yup</b>: validación por schemas (típico con Formik).</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Componentes UI</span></div>
+              <ul>
+                <li><b>shadcn/ui</b>: componentes listos (Radix + Tailwind), muy customizables.</li>
+                <li><b>Radix UI</b>: primitives accesibles sin “estilo cerrado”.</li>
+                <li><b>MUI</b>: librería completa estilo Material Design.</li>
+                <li><b>Chakra UI</b>: componentes con sistema de estilos por props.</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Estado</span></div>
+              <ul>
+                <li><b>Jotai</b>: estado por átomos (minimalista).</li>
+                <li><b>Valtio</b>: estado con proxies (mutas objetos).</li>
+                <li><b>Zustand</b>: store global simple con hooks.</li>
+                <li><b>MobX</b>: reactividad automática por observables.</li>
+                <li><b>Redux</b>: estado global formal con store/actions/reducers.</li>
+                <li><b>Redux Toolkit</b>: forma recomendada de usar Redux (menos boilerplate).</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Pruebas</span></div>
+              <ul>
+                <li><b>Vitest</b>: test runner moderno (Vite).</li>
+                <li><b>Jest</b>: test runner clásico.</li>
+                <li><b>React Testing Library</b>: testear UI como usuario.</li>
+                <li><b>Cypress</b>: tests end-to-end en navegador.</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Optimización</span></div>
+              <ul>
+                <li><b>useMemo / useCallback</b>: memorizar valores/funciones para evitar renders.</li>
+                <li><b>React Compiler</b>: optimización automática (reduce memorización manual).</li>
+                <li><b>Lazy Loading</b>: cargar componentes bajo demanda.</li>
+                <li><b>Code Splitting</b>: dividir bundles para cargar menos JS al inicio.</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Data fetching</span></div>
+              <ul>
+                <li><b>Axios</b>: cliente HTTP.</li>
+                <li><b>SWR</b>: cache + revalidación (stale-while-revalidate).</li>
+                <li><b>React Query</b>: cache, reintentos, invalidación y estado de servidor.</li>
+                <li><b>Devtools</b>: inspeccionar queries/cache en desarrollo.</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Frameworks</span></div>
+              <ul>
+                <li><b>Next.js</b>: React fullstack (SSR/SSG, rutas, APIs).</li>
+                <li><b>Remix</b>: rutas + loaders/actions (server-first).</li>
+                <li><b>Astro</b>: “islas” (JS solo donde hace falta), puede integrar React.</li>
+                <li><b>TanStack</b>: familia (Query/Table/Virtual/Router…)</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Gráficos</span></div>
+              <ul>
+                <li><b>Recharts</b>: gráficos sencillos en React.</li>
+                <li><b>Chart.js</b>: gráficos canvas.</li>
+                <li><b>react-chartjs-2</b>: wrapper React para Chart.js.</li>
+                <li><b>VisX</b>: toolkit flexible de gráficos.</li>
+                <li><b>ECharts for React</b>: wrapper para Apache ECharts.</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Animaciones</span></div>
+              <ul>
+                <li><b>Framer Motion</b>: animaciones declarativas potentes.</li>
+                <li><b>React Spring</b>: animaciones con físicas.</li>
+                <li><b>GSAP</b>: animaciones pro con timelines (plugins para React).</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">3D</span></div>
+              <ul>
+                <li><b>R3F</b>: Three.js en React (declarativo).</li>
+                <li><b>Drei</b>: helpers para R3F.</li>
+                <li><b>React Babylon.js</b>: Babylon.js integrado en React.</li>
+              </ul>
+            </div>
+
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Tablas, virtualización, fechas e i18n</span></div>
+              <div class="grid" style="margin:0;">
+                <div class="card third">
+                  <div class="kicker"><span class="chip">Tablas / grids</span></div>
+                  <ul>
+                    <li><b>TanStack Table</b>: lógica de tablas (headless).</li>
+                    <li><b>AG Grid</b>: data grid avanzado.</li>
+                    <li><b>MUI DataGrid</b>: grid de MUI.</li>
+                  </ul>
+                </div>
+                <div class="card third">
+                  <div class="kicker"><span class="chip">Virtualización</span></div>
+                  <ul>
+                    <li><b>React Virtual</b>: virtualizar listas/tablas.</li>
+                    <li><b>React Window</b>: virtualización ligera.</li>
+                    <li><b>React Virtualized</b>: virtualización clásica.</li>
+                  </ul>
+                </div>
+                <div class="card third">
+                  <div class="kicker"><span class="chip">Fechas / i18n</span></div>
+                  <ul>
+                    <li><b>date-fns</b>: utilidades por funciones.</li>
+                    <li><b>Day.js</b>: fechas ligera con API simple.</li>
+                    <li><b>React-Intl</b>: i18n con ICU.</li>
+                    <li><b>i18next</b>: i18n popular con hooks.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="callout">
+            Si cae “describe en 1 frase”: suelta la definición directa (qué resuelve) + contexto (React).
+          </div>
+        </div>
+
+        <div class="footer">
+          <div>Cheat sheet: 1 frase por librería</div>
+          <div>Siguiente: <b>Banco tipo test</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 9: TEST -->
+    <section class="slide">
+      <div class="frame">
+        <div class="topbar">
+          <div class="brand">
+            <div class="badge"></div>
+            <div>
+              <h1>Banco de preguntas tipo test (30)</h1>
+              <p>20 caerán. Practica: lee pregunta → decide → abre para ver respuesta.</p>
+            </div>
+          </div>
+          <div class="top-actions">
+            <div class="pill"><span class="dot"></span><span>Tipo test</span></div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="callout">
+            Consejo: intenta responder sin abrir. Si fallas, memoriza el “por qué”.
+          </div>
+
+          <!-- Tema 4 -->
+          <h3>Tema 4 · Box model / Bootstrap</h3>
+          <details><summary>1) ¿Qué capa del modelo de cajas separa una caja de otra?</summary><div class="answer"><b>Margin</b> (espacio externo).</div></details>
+          <details><summary>2) El padding es…</summary><div class="answer"><b>Relleno interno</b> entre el contenido y el borde.</div></details>
+          <details><summary>3) ¿Qué hace <code>.container-fluid</code> en Bootstrap?</summary><div class="answer">Ocupa <b>todo el ancho</b> del navegador.</div></details>
+          <details><summary>4) Estructura típica de grid en Bootstrap</summary><div class="answer"><b>container → row → col</b>.</div></details>
+          <details><summary>5) ¿Cuántas columnas tiene el sistema de Bootstrap?</summary><div class="answer"><b>12</b>.</div></details>
+
+          <!-- Tema 5 -->
+          <h3>Tema 5 · SASS / LESS</h3>
+          <details><summary>6) ¿Qué hace un preprocesador?</summary><div class="answer">Permite escribir CSS con <b>variables/mixins/nesting</b> y <b>compilar</b> a CSS.</div></details>
+          <details><summary>7) ¿Qué es un mixin?</summary><div class="answer">Un <b>bloque reutilizable</b> (tipo función) que puede recibir parámetros.</div></details>
+          <details><summary>8) ¿Ventaja de variables?</summary><div class="answer">Cambias 1 valor y se actualizan <b>todos</b> los usos al recompilar.</div></details>
+          <details><summary>9) ¿Qué es el anidamiento?</summary><div class="answer">Definir selectores <b>dentro</b> de otros (organización jerárquica).</div></details>
+
+          <!-- Tema 9 -->
+          <h3>Tema 9 · jQuery</h3>
+          <details><summary>10) ¿Para qué sirve <code>$(document).ready()</code>?</summary><div class="answer">Para ejecutar cuando el <b>DOM está listo</b>.</div></details>
+          <details><summary>11) ¿Qué hace <code>css()</code>?</summary><div class="answer">Lee/modifica <b>estilos CSS</b> del elemento desde jQuery.</div></details>
+          <details><summary>12) ¿Qué hace <code>replaceWith()</code>?</summary><div class="answer">Reemplaza el elemento por otro nuevo (HTML/elemento).</div></details>
+          <details><summary>13) ¿Cuál obtiene el valor de un input?</summary><div class="answer"><b>val()</b>.</div></details>
+          <details><summary>14) Eventos de teclado típicos</summary><div class="answer"><b>keydown</b> y <b>keyup</b>.</div></details>
+
+          <!-- Tema 10 -->
+          <h3>Tema 10 · Accesibilidad</h3>
+          <details><summary>15) Orden correcto de niveles</summary><div class="answer"><b>A → AA → AAA</b>.</div></details>
+          <details><summary>16) ¿Para qué sirve WAVE?</summary><div class="answer">Evaluar accesibilidad mostrando errores/avisos de forma visual.</div></details>
+          <details><summary>17) ¿TAW qué es?</summary><div class="answer">Herramientas para medir accesibilidad + análisis/certificaciones.</div></details>
+          <details><summary>18) ¿Color Contrast Checker?</summary><div class="answer">Verifica <b>contraste</b> texto/fondo para cumplir pautas.</div></details>
+          <details><summary>19) Las hojas de estilo auditivas sirven para…</summary><div class="answer">Adaptar presentación a salida <b>por voz/audio</b> (CSS Speech).</div></details>
+
+          <!-- Tema 11 -->
+          <h3>Tema 11 · Usabilidad</h3>
+          <details><summary>20) Usabilidad significa…</summary><div class="answer">Facilidad de completar tareas de forma <b>eficiente y satisfactoria</b>.</div></details>
+          <details><summary>21) ISO 13407 se asocia a…</summary><div class="answer">Diseño de sistemas interactivos <b>centrado en el usuario</b>.</div></details>
+          <details><summary>22) ISO/TR 9241/151 recoge…</summary><div class="answer">Directrices de diseño de interfaces web centrado en el usuario.</div></details>
+
+          <!-- React -->
+          <h3>Tema 12-13 · React, routing y Flux</h3>
+          <details><summary>23) En MVC, el Modelo es…</summary><div class="answer">Datos y lógica de negocio.</div></details>
+          <details><summary>24) Props en React son…</summary><div class="answer">Datos de <b>entrada</b> al componente.</div></details>
+          <details><summary>25) State en React es…</summary><div class="answer">Estado <b>interno</b> que cambia con interacción.</div></details>
+          <details><summary>26) React Router sirve para…</summary><div class="answer">Gestionar <b>navegación por rutas</b> en SPA.</div></details>
+          <details><summary>27) Capas típicas de Flux</summary><div class="answer"><b>Views</b>, <b>Actions</b>, <b>Dispatcher</b>, <b>Stores</b>.</div></details>
+          <details><summary>28) ¿Qué evento es típico de formulario en React?</summary><div class="answer"><b>onSubmit</b>.</div></details>
+          <details><summary>29) ¿Qué hace <code>onChange</code>?</summary><div class="answer">Detecta cambios (típico en inputs) para actualizar estado.</div></details>
+          <details><summary>30) ¿Qué significa flujo unidireccional en Flux?</summary><div class="answer">Los datos siguen una dirección fija: action → dispatcher → store → view.</div></details>
+        </div>
+
+        <div class="footer">
+          <div>Si clavas estas 30, vas sobrado para 20</div>
+          <div>Siguiente: <b>Desarrollo (2-4)</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 10: DESARROLLO -->
+    <section class="slide">
+      <div class="frame">
+        <div class="topbar">
+          <div class="brand">
+            <div class="badge"></div>
+            <div>
+              <h1>Preguntas de desarrollo (con respuesta modelo)</h1>
+              <p>Te van a caer 2. Aquí tienes 4 listas para elegir.</p>
+            </div>
+          </div>
+          <div class="top-actions">
+            <div class="pill"><span class="dot"></span><span>Desarrollo</span></div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="grid">
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Desarrollo 1</span></div>
+              <p class="hl"><b>Explica el modelo de cajas de CSS y pon un ejemplo de cómo afecta al tamaño final de un elemento.</b></p>
+              <p class="answer">
+                El modelo de cajas representa cada elemento como una caja formada por <b>content</b>, <b>padding</b>, <b>border</b> y <b>margin</b>.
+                El content es el área del contenido (controlada por width/height), el padding es el relleno interno,
+                el border rodea al content+padding y el margin es el espacio externo que separa cajas. El tamaño visible total del elemento
+                incluye content + padding + border; el margin no suma al “tamaño del elemento” pero sí ocupa espacio alrededor para separarlo.
+              </p>
+            </div>
+
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Desarrollo 2</span></div>
+              <p class="hl"><b>Describe Bootstrap 4: container, grid y cómo lo usarías para un diseño responsive.</b></p>
+              <p class="answer">
+                Bootstrap 4 es un framework CSS/JS orientado a diseño responsive. Se usa un contenedor <code>.container</code> o <code>.container-fluid</code>.
+                Dentro se crean filas con <code>.row</code> y columnas con <code>.col-*</code> en un sistema de 12 columnas.
+                Con breakpoints (por ejemplo <code>col-12 col-md-4</code>) se adapta el layout: móvil a una columna, escritorio a varias.
+                Además incluye clases de tipografía, colores y componentes listos (cards, navbar, formularios).
+              </p>
+            </div>
+
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Desarrollo 3</span></div>
+              <p class="hl"><b>Explica qué es accesibilidad web y cómo la evaluarías con herramientas del tema.</b></p>
+              <p class="answer">
+                La accesibilidad busca que cualquier usuario pueda usar la web reduciendo barreras (visuales, motrices, cognitivas…).
+                Se revisan aspectos como texto alternativo, contraste, navegación por teclado, semántica y mensajes de error.
+                Para evaluar: <b>Color Contrast Checker</b> para contraste, <b>WAVE</b> para un análisis visual de errores/avisos,
+                y <b>TAW</b> para medir el grado de accesibilidad y obtener análisis/certificaciones. También se contemplan hojas de estilo auditivas
+                para adaptar contenido a salida por audio (CSS Speech).
+              </p>
+            </div>
+
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Desarrollo 4</span></div>
+              <p class="hl"><b>Explica React con MVC y termina describiendo routing + Flux (idea general).</b></p>
+              <p class="answer">
+                MVC separa una app en Modelo (datos), Vista (interfaz) y Controlador (conecta y gestiona acciones). React se centra en la Vista,
+                construyendo UI con componentes (estructura en JSX, estilos y comportamiento). Los componentes reciben <b>props</b> (entrada)
+                y gestionan <b>state</b> (estado interno). Para navegación en SPA se usa <b>React Router</b>, que asigna rutas (URLs) a componentes.
+                Flux es una arquitectura de flujo unidireccional que separa <b>Views</b>, <b>Actions</b>, <b>Dispatcher</b> y <b>Stores</b>,
+                haciendo más controlable el estado y el flujo de datos.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div>Truco: en desarrollo, estructura: definición → partes → ejemplo</div>
+          <div>Siguiente: <b>2 Prácticas resueltas</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 11: PRACTICAS -->
+    <section class="slide">
+      <div class="frame">
+        <div class="topbar">
+          <div class="brand">
+            <div class="badge"></div>
+            <div>
+              <h1>Prácticas tipo examen (Bootstrap + jQuery)</h1>
+              <p>2 enunciados típicos + solución completa lista para copiar</p>
+            </div>
+          </div>
+          <div class="top-actions">
+            <div class="pill"><span class="dot"></span><span>Prácticas</span></div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="grid">
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Práctica 1 · Bootstrap</span></div>
+              <p class="hl"><b>Enunciado:</b> Haz una landing responsive con: Navbar, hero, 3 cards (1 columna en móvil, 3 en escritorio) y formulario.</p>
+
+              <details>
+                <summary>Ver solución completa (HTML Bootstrap 4)</summary>
+                <div class="answer">
+                  <pre><code>&lt;!doctype html&gt;
+&lt;html lang="es"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Práctica Bootstrap&lt;/title&gt;
+  &lt;link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"&gt;
+&lt;/head&gt;
+&lt;body class="bg-light"&gt;
+
+&lt;nav class="navbar navbar-expand-lg navbar-dark bg-dark"&gt;
+  &lt;a class="navbar-brand" href="#"&gt;MiWeb&lt;/a&gt;
+  &lt;button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#nav"&gt;
+    &lt;span class="navbar-toggler-icon"&gt;&lt;/span&gt;
+  &lt;/button&gt;
+
+  &lt;div class="collapse navbar-collapse" id="nav"&gt;
+    &lt;ul class="navbar-nav ml-auto"&gt;
+      &lt;li class="nav-item"&gt;&lt;a class="nav-link" href="#planes"&gt;Planes&lt;/a&gt;&lt;/li&gt;
+      &lt;li class="nav-item"&gt;&lt;a class="nav-link" href="#contacto"&gt;Contacto&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+&lt;/nav&gt;
+
+&lt;header class="container py-5"&gt;
+  &lt;div class="row align-items-center"&gt;
+    &lt;div class="col-12 col-md-7"&gt;
+      &lt;h1 class="display-4 font-weight-bold"&gt;Landing responsive&lt;/h1&gt;
+      &lt;p class="lead text-muted"&gt;Grid 12 columnas + clases utilitarias.&lt;/p&gt;
+      &lt;a class="btn btn-primary btn-lg" href="#contacto"&gt;Pedir info&lt;/a&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/header&gt;
+
+&lt;section id="planes" class="container pb-5"&gt;
+  &lt;h2 class="h3 mb-4"&gt;Planes&lt;/h2&gt;
+  &lt;div class="row"&gt;
+
+    &lt;div class="col-12 col-md-4 mb-3"&gt;
+      &lt;div class="card h-100"&gt;&lt;div class="card-body"&gt;
+        &lt;h5 class="card-title"&gt;Básico&lt;/h5&gt;
+        &lt;p class="card-text text-muted"&gt;Opción simple.&lt;/p&gt;
+        &lt;button class="btn btn-outline-dark btn-block"&gt;Elegir&lt;/button&gt;
+      &lt;/div&gt;&lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class="col-12 col-md-4 mb-3"&gt;
+      &lt;div class="card h-100 border-primary"&gt;&lt;div class="card-body"&gt;
+        &lt;h5 class="card-title"&gt;Pro&lt;/h5&gt;
+        &lt;p class="card-text text-muted"&gt;Más completo.&lt;/p&gt;
+        &lt;button class="btn btn-primary btn-block"&gt;Elegir&lt;/button&gt;
+      &lt;/div&gt;&lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class="col-12 col-md-4 mb-3"&gt;
+      &lt;div class="card h-100"&gt;&lt;div class="card-body"&gt;
+        &lt;h5 class="card-title"&gt;Empresa&lt;/h5&gt;
+        &lt;p class="card-text text-muted"&gt;Para equipos.&lt;/p&gt;
+        &lt;button class="btn btn-outline-dark btn-block"&gt;Elegir&lt;/button&gt;
+      &lt;/div&gt;&lt;/div&gt;
+    &lt;/div&gt;
+
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;section id="contacto" class="container pb-5"&gt;
+  &lt;h2 class="h3 mb-4"&gt;Contacto&lt;/h2&gt;
+  &lt;form&gt;
+    &lt;div class="form-group"&gt;
+      &lt;label&gt;Nombre&lt;/label&gt;
+      &lt;input class="form-control" placeholder="Tu nombre"&gt;
+    &lt;/div&gt;
+    &lt;div class="form-group"&gt;
+      &lt;label&gt;Email&lt;/label&gt;
+      &lt;input class="form-control" type="email" placeholder="tu@email.com"&gt;
+    &lt;/div&gt;
+    &lt;div class="form-group"&gt;
+      &lt;label&gt;Mensaje&lt;/label&gt;
+      &lt;textarea class="form-control" rows="4"&gt;&lt;/textarea&gt;
+    &lt;/div&gt;
+    &lt;button class="btn btn-success"&gt;Enviar&lt;/button&gt;
+  &lt;/form&gt;
+&lt;/section&gt;
+
+&lt;script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+                </div>
+              </details>
+            </div>
+
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Práctica 2 · jQuery</span></div>
+              <p class="hl"><b>Enunciado:</b> Form con nombre/email, validar (no vacío + email con @), añadir a &lt;ul&gt; sin recargar, y borrar último.</p>
+
+              <details>
+                <summary>Ver solución completa (HTML + jQuery)</summary>
+                <div class="answer">
+<pre><code>&lt;!doctype html&gt;
+&lt;html lang="es"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Práctica jQuery&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;h1&gt;jQuery: Validación + DOM&lt;/h1&gt;
+
+&lt;form id="formUsuario"&gt;
+  &lt;label&gt;Nombre&lt;/label&gt;&lt;br&gt;
+  &lt;input id="nombre"&gt;&lt;br&gt;&lt;br&gt;
+
+  &lt;label&gt;Email&lt;/label&gt;&lt;br&gt;
+  &lt;input id="email"&gt;&lt;br&gt;&lt;br&gt;
+
+  &lt;button type="submit"&gt;Añadir&lt;/button&gt;
+  &lt;button type="button" id="btnRemove"&gt;Borrar último&lt;/button&gt;
+
+  &lt;div id="msg"&gt;&lt;/div&gt;
+&lt;/form&gt;
+
+&lt;ul id="lista"&gt;&lt;/ul&gt;
+
+&lt;script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+$(function () {
+
+  function setMsg(texto, ok){
+    $("#msg").css("color", ok ? "green" : "crimson").text(texto);
+  }
+
+  $("#formUsuario").on("submit", function(e){
+    e.preventDefault();
+
+    const nombre = $("#nombre").val().trim();
+    const email = $("#email").val().trim();
+
+    if(!nombre) return setMsg("Nombre obligatorio", false);
+    if(!email) return setMsg("Email obligatorio", false);
+    if(!email.includes("@")) return setMsg("Email debe contener @", false);
+
+    $("#lista").append("&lt;li&gt;&lt;b&gt;" + nombre + "&lt;/b&gt; — " + email + "&lt;/li&gt;");
+    $("#nombre").val("");
+    $("#email").val("");
+    setMsg("Añadido", true);
+  });
+
+  $("#btnRemove").on("click", function(){
+    const items = $("#lista li");
+    if(items.length === 0) return setMsg("Nada que borrar", false);
+    items.last().remove();
+    setMsg("Borrado", true);
+  });
+
+});
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <div class="callout">
+            Si te piden “algo de teclado” en jQuery: usa <code>keydown</code> y revisa <code>e.key</code>.
+            Si te piden “cambiar estilo”: <code>css()</code>. Si te piden “sustituir elemento”: <code>replaceWith()</code>.
+          </div>
+        </div>
+
+        <div class="footer">
+          <div>Con esto cubres las 2 prácticas típicas</div>
+          <div>Siguiente: <b>Checklist final</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 12: CIERRE -->
+    <section class="slide">
+      <div class="frame">
+        <div class="topbar">
+          <div class="brand">
+            <div class="badge"></div>
+            <div>
+              <h1>Checklist final (últimos 15 minutos)</h1>
+              <p>Qué repasar justo antes de entrar</p>
+            </div>
+          </div>
+          <div class="top-actions">
+            <div class="pill"><span class="dot"></span><span>Final</span></div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="grid">
+            <div class="card wide">
+              <div class="kicker"><span class="chip">Top 15 puntos que más suelen caer</span></div>
+              <ul>
+                <li>Box-model: content/padding/border/margin (y qué hace cada uno)</li>
+                <li>Bootstrap: container vs container-fluid</li>
+                <li>Bootstrap grid: container → row → col + 12 columnas</li>
+                <li>Bootstrap responsive: <code>col-12 col-md-4</code></li>
+                <li>SASS/LESS: qué es preprocesador + compilar a CSS</li>
+                <li>SASS: variables, mixins, nesting, operadores</li>
+                <li>jQuery: <code>$(document).ready</code></li>
+                <li>jQuery: selectores + encadenado</li>
+                <li>jQuery: eventos (teclado/ventana/ratón)</li>
+                <li>jQuery: <code>css()</code> y <code>replaceWith()</code></li>
+                <li>A11y: niveles A/AA/AAA</li>
+                <li>A11y tools: Contrast Checker, WAVE, TAW</li>
+                <li>Usabilidad: tipos de usuario + barreras + navegación</li>
+                <li>ISO: 9241, 13407, 9241/151 (para qué va cada una)</li>
+                <li>React: MVC + props/state + routing + Flux capas</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Estrategia test</span></div>
+              <ul>
+                <li>Primero responde las seguras.</li>
+                <li>Luego las dudosas, descartando por definición.</li>
+                <li>Si una opción mezcla conceptos (ej: “WAVE minifica CSS”), suele ser trampa.</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="kicker"><span class="chip">Estrategia práctica</span></div>
+              <ul>
+                <li>Bootstrap: empieza con <code>container</code>, luego <code>row</code> y <code>col-*</code>.</li>
+                <li>jQuery: <code>ready</code> + <code>on("submit")</code> + <code>preventDefault</code>.</li>
+                <li>Valida y muestra feedback (msg).</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="callout">
+            Si quieres, me dices <b>qué parte te cuesta más</b> (A11y/Usabilidad/React/jQuery/Bootstrap)
+            y te preparo un mini “chuletario” de 1 página solo con lo que más confunde.
+          </div>
+        </div>
+
+        <div class="footer">
+          <div>Fin. Usa <span class="kbd">Home</span> para volver al inicio o <span class="kbd">End</span> para aquí.</div>
+          <div>¡A reventarlo!</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function(){
+      const deck = document.getElementById("deck");
+      const slides = Array.from(document.querySelectorAll(".slide"));
+      const hud = document.getElementById("hud");
+      const slideLabel = document.getElementById("slideLabel");
+
+      let index = 0;
+      const max = slides.length - 1;
+
+      // Build pips
+      slides.forEach((_, i) => {
+        const pip = document.createElement("button");
+        pip.className = "pip";
+        pip.type = "button";
+        pip.title = "Ir a sección " + (i+1);
+        pip.setAttribute("aria-label", "Ir a sección " + (i+1));
+        pip.addEventListener("click", () => go(i));
+        hud.appendChild(pip);
+      });
+
+      function clamp(n){ return Math.max(0, Math.min(max, n)); }
+
+      function setActivePips(){
+        const pips = hud.querySelectorAll(".pip");
+        pips.forEach((p, i) => p.classList.toggle("active", i === index));
+      }
+
+      function updateLabel(){
+        if(slideLabel) slideLabel.textContent = `Sección ${index+1} / ${slides.length}`;
+      }
+
+      function go(next){
+        index = clamp(next);
+        deck.style.transform = `translateY(${-index * 100}vh)`;
+        setActivePips();
+        updateLabel();
+
+        // For accessibility: announce current slide title
+        const h1 = slides[index].querySelector("h1");
+        if(h1) document.title = `(${index+1}/${slides.length}) ` + h1.textContent + " · DIW Repaso";
+      }
+
+      function next(){ go(index + 1); }
+      function prev(){ go(index - 1); }
+
+      // Keyboard navigation (arrows)
+      window.addEventListener("keydown", (e) => {
+        const tag = (document.activeElement && document.activeElement.tagName) ? document.activeElement.tagName.toLowerCase() : "";
+        const typing = tag === "input" || tag === "textarea" || document.activeElement?.isContentEditable;
+        if(typing) return;
+
+        const key = e.key;
+
+        // prevent the default arrow scroll to avoid "half slides"
+        if(["ArrowDown","ArrowUp","PageDown","PageUp","Home","End"].includes(key)){
+          e.preventDefault();
+        }
+
+        if(key === "ArrowDown" || key === "PageDown" || key === " "){ next(); return; }
+        if(key === "ArrowUp" || key === "PageUp"){ prev(); return; }
+        if(key === "Home"){ go(0); return; }
+        if(key === "End"){ go(max); return; }
+
+        // extra: left/right also navigate (por si acaso)
+        if(key === "ArrowRight"){ next(); return; }
+        if(key === "ArrowLeft"){ prev(); return; }
+      }, { passive:false });
+
+      // Optional: wheel navigation with small debounce (doesn't break requirement)
+      let wheelLock = false;
+      window.addEventListener("wheel", (e) => {
+        if(wheelLock) return;
+        // If the user is scrolling inside a .content with overflow, do not navigate
+        const path = e.composedPath ? e.composedPath() : [];
+        const inScrollable = path.some(el => el && el.classList && el.classList.contains && el.classList.contains("content"));
+        if(inScrollable) return;
+
+        wheelLock = true;
+        setTimeout(()=> wheelLock=false, 380);
+
+        if(e.deltaY > 10) next();
+        else if(e.deltaY < -10) prev();
+      }, { passive:true });
+
+      go(0);
+    })();
+  </script>
+</body>
+</html>
